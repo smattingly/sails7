@@ -1,0 +1,10 @@
+{
+    "skip-full": true,
+    "include": [
+        "api/**/*.js"
+    ],
+    "reporter": [
+        "lcov",
+        "text-summary"
+    ]
+}

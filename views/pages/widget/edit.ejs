@@ -1,0 +1,32 @@
+<div class="row">
+	<div class="col-sm-3"></div>
+	<div class="col-sm-5">
+		<h1>Edit widget <%= id %>
+		</h1>
+		<form action="/api/v1/widget/<%= id %>" id="edit-widget-form">
+			<%- include('./form-groups.ejs') %>
+				<div class="text-right">
+					<button id="submitButton" type="submit" class="btn btn-dark" data-test="submit">
+						Update
+					</button>
+				</div>
+		</form>
+	</div>
+</div>
+<script src="/js/_fetch.js"></script>
+<script>
+	(() => {
+		const form = document.getElementById('edit-widget-form');
+
+		function postUpdateCallback(result) {
+			if (result instanceof Error) {
+				showBanner(`Error. <code>${result.message}</code>`, 'danger');
+				return;
+			}
+			document.getElementById('name').focus();
+			showBanner(`Success. Widget was updated.`, 'success');
+		}
+
+		setupUpdateForm(form, postUpdateCallback);
+	})();
+</script>

@@ -1,5 +1,6 @@
 import React from 'react';
 import Table from 'react-bootstrap/Table';
+import { restfulDelete } from './_fetch';
 
 export default class WidgetTable extends React.Component {
   constructor() {
@@ -13,7 +14,6 @@ export default class WidgetTable extends React.Component {
       fields: [{ attr: "id", align: "right" }, { attr: "name", align: "left" }],
       rows: []
     };
-    this.onScroll = this.onScroll.bind(this);
   }
 
   render() {
@@ -32,7 +32,6 @@ export default class WidgetTable extends React.Component {
           <tbody id="table-body">
             {
               this.state.rows.map((row, rowIndex) => {
-                console.log(`rendering row ${rowIndex}`)
                 return (
                   <tr>
                     {
@@ -52,7 +51,7 @@ export default class WidgetTable extends React.Component {
                     </td>
 
                     <td>
-                      <i className="fa fa-trash-o" id={rowIndex} onClick={this.deleteRow} style={{ color: 'black', cursor: 'pointer' }} data-toggle="tooltip" data-placement="right" title="Delete this record"></i>
+                      <i className="fa fa-trash-o" onClick={() => this.deleteRow(rowIndex, row.id)} style={{ color: 'black', cursor: 'pointer' }} data-toggle="tooltip" data-placement="right" title="Delete this record"></i>
                     </td>
                   </tr>
                 );
@@ -68,7 +67,7 @@ export default class WidgetTable extends React.Component {
     this.fetchData();
   }
 
-  async onScroll(event) {
+  onScroll = async (event) => {
     let scroller = event.target;
     const { scrollTop, scrollHeight, clientHeight } = scroller;
 
@@ -104,14 +103,11 @@ export default class WidgetTable extends React.Component {
     }, 500);
   }
 
-  deleteRow = (event) => {
-    const rowIndex = event.target.id;
-    // const row = document.getElementById(id);
-    // if (row) row.remove();
+  deleteRow = (rowIndex, recordId) => {
     this.setState({
       rows: this.state.rows.slice(0, rowIndex).concat(this.state.rows.slice(rowIndex + 1))
     });
-    // restDelete(id);
+    restfulDelete(`${this.state.apiPrefix}/${this.state.modelUrl}/${recordId}`);
   };
   // const activateScrollHandler = () => {
   //   scroller.addEventListener("scroll", onScroll, {

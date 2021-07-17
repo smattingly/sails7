@@ -1,3 +1,5 @@
+export { restfulDelete };
+
 async function submitFormDataAsJson(method, url, formData) {
 	const plainFormData = Object.fromEntries(formData.entries());
 	const formDataJsonString = JSON.stringify(plainFormData);

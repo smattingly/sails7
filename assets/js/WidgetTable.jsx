@@ -73,8 +73,8 @@ export default class WidgetTable extends React.Component {
 
     if (scrollTop + clientHeight >= scrollHeight - 5) {
       // scroller.removeEventListener("scroll", onScroll);
-      this.setState({
-        skip: this.state.skip + this.state.limit
+      this.setState((state) => {
+        return {skip: state.skip + state.limit}
       });
       await this.fetchData(this.state.skip, this.state.limit);
       // if (this.state.moreToFetch) setTimeout(activateScrollHandler, 100);
@@ -91,9 +91,11 @@ export default class WidgetTable extends React.Component {
         }
 
         const results = await response.json();
-        this.setState({
-          rows: this.state.rows.concat(results),
-          moreToFetch: results.length === this.state.limit
+        this.setState((state) => {
+          return {
+            rows: state.rows.concat(results),
+            moreToFetch: results.length === state.limit
+          };
         });
 
         // spinner.style.display = "none";
@@ -104,8 +106,10 @@ export default class WidgetTable extends React.Component {
   }
 
   deleteRow = (rowIndex, recordId) => {
-    this.setState({
-      rows: this.state.rows.slice(0, rowIndex).concat(this.state.rows.slice(rowIndex + 1))
+    this.setState((state) => {
+      return {
+        rows: state.rows.slice(0, rowIndex).concat(state.rows.slice(rowIndex + 1))
+      };
     });
     restfulDelete(`${this.state.apiPrefix}/${this.state.modelUrl}/${recordId}`);
   };

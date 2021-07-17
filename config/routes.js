@@ -19,7 +19,7 @@ module.exports.routes = {
   *                                                                          *
   ***************************************************************************/
 
-  '/': '/index.html',
+  'GET /': { view: 'pages/homepage' }, 
   'GET /widget': { view: 'pages/widget/index' }, 
   'GET /widget/new': { view: 'pages/widget/new'},
   'GET /widget/:id/edit': function(req, res) { 

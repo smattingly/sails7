@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>TODO: CHANGE ME</title>
 
-    <!-- Viewport mobile tag for sensible mobile support -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<head>
+  <title>TODO: CHANGE ME</title>
 
-    <%/* If you want to discourage search engines from indexing this site, uncomment the following line: */%>
-    <%/* <meta name="robots" content="noindex"> */%>
+  <!-- Viewport mobile tag for sensible mobile support -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <% /* If you want to discourage search engines from indexing this site, uncomment the following line: */%>
+    <% /* <meta name="robots" content="noindex"> */%>
 
 
-    <!--
+      <!--
         Stylesheets and Preprocessors
         ==============================
 
@@ -31,40 +32,44 @@
             + Use a different or additional preprocessor, like SASS, SCSS or Stylus
     -->
 
-    <!--STYLES-->
-    <link rel="stylesheet" href="/styles/importer.css">
-    <link rel="stylesheet" href="/styles/sticky-table.css">
-    <!--STYLES END-->
+      <!--STYLES-->
+      <link rel="stylesheet" href="/styles/importer.css">
+      <link rel="stylesheet" href="/styles/sticky-table.css">
+      <!--STYLES END-->
 
-    <!-- External, manually loaded styles -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-  </head>
+      <!-- External, manually loaded styles -->
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+      <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+</head>
 
-  <body style="padding-top: 60px">
-    <nav class="navbar fixed-top navbar-expand-md bg-primary navbar-dark" data-test="navbar">
-      <a href="#" class="navbar-brand">Change Me</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="collapsibleNavbar">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a href="/widget" class="nav-link <%= '/widget' === '/widget' ? 'active' : '' %>">Widgets</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-
-    <div id="banner" style="display: none;" class="alert alert-dismissible">
-      <button type="button" onclick="closeBanner();" class="close">
-        &times;
-      </button>
+<body style="padding-top: 60px">
+  <nav class="navbar fixed-top navbar-expand-md bg-primary navbar-dark" data-test="navbar">
+    <a href="#" class="navbar-brand">Change Me</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a href="/widget" class="nav-link <%= '/widget' === '/widget' ? 'active' : '' %>">Widgets</a>
+        </li>
+      </ul>
     </div>
-  
-    <div id="react-container" class="container-fluid"><%- body %></div>
+  </nav>
 
-    <!--
+  <div id="banner" style="display: none;" class="alert alert-dismissible">
+    <button type="button" onclick="closeBanner();" class="close">
+      &times;
+    </button>
+  </div>
+
+  <div id="react-container" class="container-fluid">
+    <%- body %>
+  </div>
+
+  <!--
         Client-side Templates
         ========================
 
@@ -85,11 +90,11 @@
               stringfile before they're served.
     -->
 
-    <!--TEMPLATES-->
-    <!--TEMPLATES END-->
+  <!--TEMPLATES-->
+  <!--TEMPLATES END-->
 
 
-    <!--
+  <!--
         Server-side View Locals
         ========================
 
@@ -105,7 +110,7 @@
     -->
 
 
-    <!--
+  <!--
 
       Client-side Javascript
       ========================
@@ -128,38 +133,38 @@
 
     -->
 
-    <!--SCRIPTS-->
-    <script src="/dependencies/sails.io.js"></script>
-    <script src="/js/bundle.js"></script>
-    <!--SCRIPTS END-->
+  <!--SCRIPTS-->
+  <script src="/dependencies/sails.io.js"></script>
+  <script src="/js/bundle.js"></script>
+  <!--SCRIPTS END-->
 
-     <!-- External, manually loaded scripts -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- External, manually loaded scripts -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
 
-    <script>
-      $(document).ready(function () {
-        $('[data-toggle="tooltip"]').tooltip();
-      });
+  <script>
+    $(document).ready(function () {
+      $('[data-toggle="tooltip"]').tooltip();
+    });
 
-      function closeBanner() {
-        const message = document.getElementById('banner-message');
-        if (!message) return;
-        message.remove();        
-        const banner = document.getElementById("banner")
-		    banner.classList.remove('alert-primary', 'alert-secondary', 'alert-success', 'alert-danger', 'alert-warning', 'alert-info', 'alert-light', 'alert-dark');
-		    banner.style.display = 'none';
-      } 
-      
-      function showBanner(message, type) {
-        closeBanner();
-        type = type || 'info';
-        const banner = document.getElementById("banner")
-    		banner.innerHTML += `<div id="banner-message">${message}</div>`; 
-		    banner.classList.add(`alert-${type}`);
-		    banner.style.display = 'block';
-      }
-    </script>
-  </body>
+    function closeBanner() {
+      const message = document.getElementById('banner-message');
+      if (!message) return;
+      message.remove();
+      const banner = document.getElementById("banner")
+      banner.classList.remove('alert-primary', 'alert-secondary', 'alert-success', 'alert-danger', 'alert-warning', 'alert-info', 'alert-light', 'alert-dark');
+      banner.style.display = 'none';
+    }
+
+    function showBanner(message, type) {
+      closeBanner();
+      type = type || 'info';
+      const banner = document.getElementById("banner")
+      banner.innerHTML += `<div id="banner-message">${message}</div>`;
+      banner.classList.add(`alert-${type}`);
+      banner.style.display = 'block';
+    }
+  </script>
+</body>
+
 </html>

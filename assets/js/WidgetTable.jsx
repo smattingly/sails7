@@ -7,9 +7,9 @@ export default class WidgetTable extends React.Component {
   constructor() {
     super();
     this.state = {
-      skip: 0,
-      limit: 9,
-      moreToFetch: true,
+      fetchedCount: 0,
+      notFetchedCount: 0,
+      fetchSize: 20,
       apiPrefix: 'api/v1',
       modelUrl: '/widget',
       fields: [{ attr: "id", align: "end" }, { attr: "name", align: "start" }],
@@ -30,7 +30,7 @@ export default class WidgetTable extends React.Component {
         <div id="infinite-scroller" class="sticky-table-container" onScroll={this.onScroll}>
           <Table id="data-table" table striped bordered>
             <thead>
-              <tr>
+              <tr id="heading-row">
                 <th class="text-end">#</th>
                 <th>Name</th>
                 <th><i className="fa fa-edit" style={{ fontWeight: 'bold', color: 'black' }}></i></th>
@@ -38,7 +38,7 @@ export default class WidgetTable extends React.Component {
               </tr>
             </thead>
 
-            <tbody id="table-body">
+            <tbody>
               {
                 this.state.rows.map((row, rowIndex) => {
                   return (
@@ -63,10 +63,11 @@ export default class WidgetTable extends React.Component {
                         <i className="fa fa-trash-o" onClick={() => this.deleteRow(rowIndex, row.id)} style={{ color: 'black', cursor: 'pointer' }} data-toggle="tooltip" data-placement="right" title="Delete this record"></i>
                       </td>
                     </tr>
+
                   );
                 })
               }
-              
+              <tr id="filler" style={{ height: this.setFillerHeight() }}></tr>
             </tbody>
           </Table>
         </div>
@@ -74,76 +75,62 @@ export default class WidgetTable extends React.Component {
     );
   }
 
-  componentDidMount() {
-    this.fetchData();
+  setFillerHeight() {
+    const heading = document.getElementById('heading-row');
+    if (!heading) return '0px';
+    return `${heading.offsetHeight * this.state.notFetchedCount}px`;
   }
 
-  onScroll = async (event) => {
-    if (!this.canFetchOnScroll) return; 
+  componentDidMount() {
+    this.fetchData().then(() => {
+      document.getElementById('spinner').style.display = 'none';
+    });
+  }
 
-    console.log("onScroll")
-    let scroller = event.target;
-    const { scrollTop, scrollHeight, clientHeight } = scroller;
+  onScroll = () => {
+    if (!this.canFetchOnScroll) return;
 
-    const bounding = document.getElementById('data-table').lastElementChild.getBoundingClientRect();
-let shouldFetch;
-    if (
-      // bounding.top >= 0 &&
-      // bounding.left >= 0 &&
-      // bounding.right <= (window.innerWidth || document.documentElement.clientWidth) &&
-      // bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight)
-      bounding.top <= scroller.getBoundingClientRect().bottom 
-    ) {
-      shouldFetch = true;
-      console.log(`fetching cause ${bounding.top} <= ${scroller.getBoundingClientRect().bottom}`)
-    } else {
-      shouldFetch = false;
-      console.log('Not in the viewport... whomp whomp');
-    }
+    /*
+
+WHEN DRAG THUMB TO BOTTOM, NEED TO CATCH UP
+- FETCH IN A LOOP?
+- FETCH ONCE, THEN SCROLL TO MARKER?
+- WAIT TO SEE IF SCROLLING ENDS?
 
 
-    // if (scrollTop + clientHeight >= scrollHeight - 5) {
-    if (shouldFetch) {
+    */
 
-      // scroller.removeEventListener("scroll", this.onScroll);
-    // console.log('disabled onScroll')
-      this.setState((state) => {
-        return { skip: state.skip + state.limit }
-      });
-      await this.fetchData(this.state.skip, this.state.limit);
-      // if (this.state.moreToFetch) setTimeout(this.activateScrollHandler, 100);
-    }
+    const filler = document.getElementById('filler').getBoundingClientRect();
+    if (filler.top - document.getElementById('infinite-scroller').getBoundingClientRect().bottom > 10) return;
+
+    this.canFetchOnScroll = false;
+    this.fetchData().then(() => {
+      this.canFetchOnScroll = this.state.notFetchedCount > 0;
+    });
   }
 
   async fetchData() {
-    if (!this.canFetchOnScroll) console.log('wtf?');
-    this.canFetchOnScroll = false;
-    setTimeout(async () => {
-      try {
-        const response = await fetch(`${this.state.apiPrefix}${this.state.modelUrl}?skip=${this.state.skip}&limit=${this.state.limit}`, {});
+    try {
+      const response = await fetch(`${this.state.apiPrefix}${this.state.modelUrl}?skip=${this.state.fetchedCount}&limit=${this.state.fetchSize}`, {});
 
-        if (!response.ok) {
-          throw new Error(`An error occurred: ${response.status}`);
-        }
-
-        const results = await response.json();
-        this.setState((state) => {
-          const displayRows = state.rows.length + results.length;
-          document.getElementById('data-table').style['padding-bottom'] = Math.max(60, (10 - displayRows) * 10) + '%';
-          console.log(`padding now ${Math.max(60, (10 - displayRows) * 10)}%`)
-          return {
-            rows: state.rows.concat(results),
-            moreToFetch: results.length === state.limit
-          };
-        });
-
-        document.getElementById('spinner').style.display = 'none';
-      } catch (error) {
-        console.log(error.message);
-      } finally {
-        this.canFetchOnScroll = this.state.moreToFetch;
+      if (!response.ok) {
+        throw new Error(`An error occurred: ${response.status}`);
       }
-    }, 500);
+
+      // HANDLE RANGE IN HTTP HEADERS
+      let total = 100;
+
+      const results = await response.json();
+      this.setState((state) => {
+        return {
+          rows: state.rows.concat(results),
+          fetchedCount: state.fetchedCount + results.length,
+          notFetchedCount: total - (state.fetchedCount + results.length),
+        };
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
   deleteRow = (rowIndex, recordId) => {
@@ -152,14 +139,7 @@ let shouldFetch;
         rows: state.rows.slice(0, rowIndex).concat(state.rows.slice(rowIndex + 1))
       };
     });
+
     restfulDelete(`${this.state.apiPrefix}/${this.state.modelUrl}/${recordId}`);
   };
-
-  // activateScrollHandler = () => {
-  //   console.log('activate onScroll')
-  //   let scroller = document.getElementById('infinite-scroller');
-  //   scroller.addEventListener("scroll", this.onScroll, {
-  //     passive: true,
-  //   })
-  // };
 }

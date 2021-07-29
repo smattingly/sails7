@@ -8,7 +8,8 @@ export default class WidgetTable extends React.Component {
     super();
     this.state = {
       fetchedCount: 0,
-      notFetchedCount: 0,
+      notFetchedCount: 0, // approximate; records may be created/deleted between fetches
+      moreToFetch: true,  // definitive
       fetchSize: 20,
       apiPrefix: 'api/v1',
       modelUrl: '/widget',
@@ -16,7 +17,7 @@ export default class WidgetTable extends React.Component {
       rows: []
     };
 
-    this.canFetchOnScroll = true;
+    this.okToFetch = true;
   }
 
   render() {
@@ -33,8 +34,7 @@ export default class WidgetTable extends React.Component {
               <tr id="heading-row">
                 <th class="text-end">#</th>
                 <th>Name</th>
-                <th><i className="fa fa-edit" style={{ fontWeight: 'bold', color: 'black' }}></i></th>
-                <th><i className="fa fa-trash-o" style={{ fontWeight: 'bold', color: 'black' }}></i></th>
+                <th>Actions</th>
               </tr>
             </thead>
 
@@ -55,77 +55,77 @@ export default class WidgetTable extends React.Component {
 
                       <td>
                         <a href={`${this.state.modelUrl}/${row.id}/edit`}>
-                          <i className="fa fa-edit" style={{ color: 'black', cursor: 'pointer' }} data-toggle="tooltip" data-placement="right" title="Edit this record"></i>
+                          <i className="fa fa-edit px-2" style={{ color: 'black', cursor: 'pointer' }} data-toggle="tooltip" data-placement="right" title="Edit this record"></i>
                         </a>
-                      </td>
 
-                      <td>
-                        <i className="fa fa-trash-o" onClick={() => this.deleteRow(rowIndex, row.id)} style={{ color: 'black', cursor: 'pointer' }} data-toggle="tooltip" data-placement="right" title="Delete this record"></i>
+                        <i className="fa fa-trash-o px-2" onClick={() => this.deleteRow(rowIndex, row.id)} style={{ color: 'black', cursor: 'pointer' }} data-toggle="tooltip" data-placement="right" title="Delete this record"></i>
                       </td>
                     </tr>
 
                   );
                 })
               }
-              <tr id="filler" style={{ height: this.setFillerHeight() }}></tr>
             </tbody>
           </Table>
+          <div id="filler" style={{ height: this.setFillerHeight() }}></div>
         </div>
       </>
     );
   }
 
   setFillerHeight() {
+    // A "filler" is sized to keep scroll thumb proportional to total data.
     const heading = document.getElementById('heading-row');
     if (!heading) return '0px';
     return `${heading.offsetHeight * this.state.notFetchedCount}px`;
   }
 
   componentDidMount() {
+    // Fetch first part of data, then hide spinner.
     this.fetchData().then(() => {
       document.getElementById('spinner').style.display = 'none';
     });
   }
 
   onScroll = () => {
-    if (!this.canFetchOnScroll) return;
+    // Do nothing if all data fetched, or fetch is in progress. 
+    if (!this.okToFetch) return;
 
-    /*
+    // Have we scrolled far enough down to need another data fetch?
+    const filler = document.getElementById('filler');
+    const scroller = document.getElementById('infinite-scroller');
+    if (filler.getBoundingClientRect().top - scroller.getBoundingClientRect().bottom > 10) return;
 
-WHEN DRAG THUMB TO BOTTOM, NEED TO CATCH UP
-- FETCH IN A LOOP?
-- FETCH ONCE, THEN SCROLL TO MARKER?
-- WAIT TO SEE IF SCROLLING ENDS?
-
-
-    */
-
-    const filler = document.getElementById('filler').getBoundingClientRect();
-    if (filler.top - document.getElementById('infinite-scroller').getBoundingClientRect().bottom > 10) return;
-
-    this.canFetchOnScroll = false;
+    // Yes, so perform fetch.
+    this.okToFetch = false;
     this.fetchData().then(() => {
-      this.canFetchOnScroll = this.state.notFetchedCount > 0;
+      scroller.scrollBy(0, -1); // force scroll thumb to update
+      this.okToFetch = this.state.moreToFetch;
     });
   }
 
   async fetchData() {
     try {
-      const response = await fetch(`${this.state.apiPrefix}${this.state.modelUrl}?skip=${this.state.fetchedCount}&limit=${this.state.fetchSize}`, {});
+      // Request one "extra" record to see if there will still be more to fetch.
+      const response = await fetch(`${this.state.apiPrefix}${this.state.modelUrl}?skip=${this.state.fetchedCount}&limit=${this.state.fetchSize + 1}`, {});
 
       if (!response.ok) {
         throw new Error(`An error occurred: ${response.status}`);
       }
 
-      // HANDLE RANGE IN HTTP HEADERS
-      let total = 100;
+      const range = response.headers.get('Content-Range') || '';
+      const total = Number(range.substring(range.lastIndexOf('/') + 1));
 
       const results = await response.json();
+      const moreToFetch = (results.length === this.state.fetchSize + 1);
+      if (moreToFetch) results.pop(); // Drop the "extra" record.
+
       this.setState((state) => {
         return {
           rows: state.rows.concat(results),
           fetchedCount: state.fetchedCount + results.length,
           notFetchedCount: total - (state.fetchedCount + results.length),
+          moreToFetch: moreToFetch
         };
       });
     } catch (error) {

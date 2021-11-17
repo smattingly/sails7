@@ -1,6 +1,6 @@
 # project
 
-a change for testing rebase
+an alternative change for the rebase test
 
 a [Sails v1](https://sailsjs.com) application
 
